@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Registro {
+  idRegistro    String   @id @map("id_registro") @db.Uuid
+  codigoActivo  String   @map("codigo_activo")
+  tipoActividad String   @map("tipo_actividad")
+  observacion   String
+  capturadoEn   DateTime @map("capturado_en")
+  recibidoEn    DateTime @default(now()) @map("recibido_en")
+  usuarioId     String   @map("usuario_id")
+
+  @@map("registros")
+}
