@@ -159,3 +159,9 @@ proxy/certs/
 
 # Variables de entorno reales
 .env
+
+# Archivos generados por Prisma 7 (skills para asistentes de IA), no pertenecen al proyecto
+.claude/
+.agents/
+.windsurf/
+skills-lock.json
