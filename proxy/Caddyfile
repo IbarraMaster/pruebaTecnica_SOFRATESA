@@ -18,4 +18,14 @@
         rewrite * /health
         reverse_proxy records-service:3002
     }
+
+    handle /openapi-auth.yaml {
+        rewrite * /openapi.yaml
+        reverse_proxy auth-service:3001
+    }
+
+    handle /openapi-registros.yaml {
+        rewrite * /openapi.yaml
+        reverse_proxy records-service:3002
+    }
 }

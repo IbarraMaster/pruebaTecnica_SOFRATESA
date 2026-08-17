@@ -1,0 +1,72 @@
+openapi: 3.0.3
+info:
+  title: Auth Service - Prueba técnica SOFRATESA
+  version: "1.0.0"
+  description: >
+    Servicio de autenticación. Valida credenciales contra PostgreSQL y emite
+    un JWT firmado con expiración configurable (JWT_EXPIRES_IN, 60 min por
+    defecto).
+servers:
+  - url: https://localhost/
+    description: A través del proxy inverso (Caddy) local
+paths:
+  /health:
+    get:
+      summary: Estado del servicio
+      security: []
+      responses:
+        "200":
+          description: Servicio activo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /auth/login:
+    post:
+      summary: Inicio de sesión del técnico
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [usuario, password]
+              properties:
+                usuario:
+                  type: string
+                  example: tecnico1
+                password:
+                  type: string
+                  format: password
+                  example: Tecnico123!
+      responses:
+        "200":
+          description: Credenciales válidas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expira_en:
+                    type: string
+                    format: date-time
+        "401":
+          description: >
+            Credenciales inválidas. La respuesta es idéntica exista o no el
+            usuario, para no revelar si una cuenta existe.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: credenciales inválidas

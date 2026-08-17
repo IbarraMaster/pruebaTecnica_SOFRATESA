@@ -1,0 +1,93 @@
+openapi: 3.0.3
+info:
+  title: Records Service - Prueba técnica SOFRATESA
+  version: "1.0.0"
+  description: >
+    Recibe registros de mantenimiento capturados por la app Android y los
+    almacena en PostgreSQL de forma idempotente por id_registro. El usuario
+    que crea el registro se determina exclusivamente por el token, nunca por
+    el cuerpo de la petición.
+servers:
+  - url: https://localhost/
+    description: A través del proxy inverso (Caddy) local
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      summary: Estado del servicio
+      security: []
+      responses:
+        "200":
+          description: Servicio activo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /registros:
+    post:
+      summary: Crear (o confirmar) un registro de mantenimiento
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_registro, codigo_activo, tipo_actividad, observacion, capturado_en]
+              properties:
+                id_registro:
+                  type: string
+                  format: uuid
+                  description: UUID v4 generado por la app; clave de idempotencia.
+                codigo_activo:
+                  type: string
+                  minLength: 3
+                  maxLength: 30
+                  pattern: "^[A-Za-z0-9_-]+$"
+                tipo_actividad:
+                  type: string
+                  enum: [PREVENTIVO, CORRECTIVO, INSPECCION]
+                observacion:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                capturado_en:
+                  type: string
+                  format: date-time
+                  description: Momento de captura en el dispositivo, ISO 8601 UTC.
+      responses:
+        "201":
+          description: Registro almacenado por primera vez
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje:
+                    type: string
+                    example: registro almacenado
+        "200":
+          description: El id_registro ya existía; no se duplica (idempotencia)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje:
+                    type: string
+                    example: registro ya existía
+        "400":
+          description: Datos inválidos según las reglas de validación
+        "401":
+          description: Token ausente, inválido o vencido
