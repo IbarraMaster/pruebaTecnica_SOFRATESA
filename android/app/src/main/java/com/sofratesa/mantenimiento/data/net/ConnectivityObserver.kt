@@ -14,9 +14,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 
 /**
- * Expone conectividad "de verdad" (con salida a internet validada), no solo
- * "hay una interfaz de red". Usado para el indicador visible y para disparar
- * la sincronización automática al recuperar señal.
+ * Expone si hay una interfaz de red activa con capacidad de salir a internet.
+ * No exige NET_CAPABILITY_VALIDATED (esa bandera depende de que Android logre
+ * hacer ping a servidores de Google): en un entorno 100% local como este,
+ * contra un backend propio en Docker, esa validación puede no completarse
+ * nunca aunque la red hacia el backend funcione perfectamente.
  */
 class ConnectivityObserver(context: Context, scope: CoroutineScope) {
 
@@ -26,9 +28,7 @@ class ConnectivityObserver(context: Context, scope: CoroutineScope) {
     private val flujoBruto: Flow<Boolean> = callbackFlow {
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
-                val validado = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) &&
-                    capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                trySend(validado)
+                trySend(capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET))
             }
 
             override fun onLost(network: Network) {
@@ -57,7 +57,6 @@ class ConnectivityObserver(context: Context, scope: CoroutineScope) {
     private fun hayConexionAhoraMismo(): Boolean {
         val red = connectivityManager.activeNetwork ?: return false
         val capacidades = connectivityManager.getNetworkCapabilities(red) ?: return false
-        return capacidades.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-            capacidades.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        return capacidades.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 }
