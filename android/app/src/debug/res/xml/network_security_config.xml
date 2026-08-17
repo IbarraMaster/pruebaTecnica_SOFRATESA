@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Solo aplica a la variante debug (ver AndroidManifest.xml en src/debug).
+  Confía en la CA autofirmada local generada por scripts/generar-certificados.sh
+  y prohíbe explícitamente el tráfico en texto claro.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">sofratesa.local</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <trust-anchors>
+            <certificates src="@raw/sofratesa_ca" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>
