@@ -1,0 +1,21 @@
+:443 {
+    tls /certs/sofratesa.crt /certs/sofratesa.key
+
+    handle /auth/* {
+        reverse_proxy auth-service:3001
+    }
+
+    handle /registros* {
+        reverse_proxy records-service:3002
+    }
+
+    handle /health-auth {
+        rewrite * /health
+        reverse_proxy auth-service:3001
+    }
+
+    handle /health-registros {
+        rewrite * /health
+        reverse_proxy records-service:3002
+    }
+}
